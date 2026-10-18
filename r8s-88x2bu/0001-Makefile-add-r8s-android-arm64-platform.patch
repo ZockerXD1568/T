@@ -1,0 +1,44 @@
+diff --git a/Makefile b/Makefile
+index f445960..f760ad5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -137,7 +137,8 @@ CONFIG_LAYER2_ROAMING = y
+ #bit0: ROAM_ON_EXPIRED, #bit1: ROAM_ON_RESUME, #bit2: ROAM_ACTIVE
+ CONFIG_ROAMING_FLAG = 0x3
+ ###################### Platform Related #######################
+-CONFIG_PLATFORM_I386_PC = y
++CONFIG_PLATFORM_I386_PC = n
++CONFIG_PLATFORM_ANDROID_ARM64 = y
+ CONFIG_PLATFORM_ANDROID_X86 = n
+ CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
+ CONFIG_PLATFORM_JB_X86 = n
+@@ -1336,6 +1337,20 @@ ifeq ($(CONFIG_RTW_IOCTL_SET_COUNTRY), y)
+ ccflags-y += -DCONFIG_RTW_IOCTL_SET_COUNTRY
+ endif
+ 
++ifeq ($(CONFIG_PLATFORM_ANDROID_ARM64), y)
++# Samsung Galaxy S20 FE (r8s), LineageOS kernel 4.19.325-cip126-st10-g88a015858b05
++ccflags-y += -DCONFIG_LITTLE_ENDIAN
++ccflags-y += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
++ARCH ?= arm64
++CROSS_COMPILE ?= aarch64-linux-gnu-
++KVER ?= 4.19.325-cip126-st10-g88a015858b05
++KSRC ?= /home/user/build/kernel
++KOUT ?= /home/user/build/out
++MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
++INSTALL_PREFIX :=
++STAGINGMODDIR := /lib/modules/$(KVER)/kernel/drivers/staging
++endif
++
+ ifeq ($(CONFIG_PLATFORM_I386_PC), y)
+ ccflags-y += -DCONFIG_LITTLE_ENDIAN
+ ccflags-y += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+@@ -2467,7 +2482,7 @@ export CONFIG_RTL8822BU = m
+ all: modules
+ 
+ modules:
+-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
++	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) $(if $(KOUT),O=$(KOUT)) M=$(shell pwd)  modules
+ 
+ strip:
+ 	$(CROSS_COMPILE)strip $(MODULE_NAME).ko --strip-unneeded
