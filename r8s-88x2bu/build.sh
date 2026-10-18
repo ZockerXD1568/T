@@ -26,6 +26,8 @@ KMAKE=(make -C "$W/kernel" O="$W/out" ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang LD=l
 test "$("${KMAKE[@]}" -s kernelrelease)" = 4.19.325-cip126-st10-g88a015858b05
 # Full build is required: CONFIG_MODVERSIONS=y needs Module.symvers with the real CRCs
 "${KMAKE[@]}" -j"$(nproc)"
-"${KMAKE[@]}" M="$W/driver" -j"$(nproc)" modules
+# Use the driver Makefile: it exports CONFIG_RTL8822BU=m and passes KSRC/KOUT
+make -C "$W/driver" -j"$(nproc)" modules KSRC="$W/kernel" KOUT="$W/out" \
+	LLVM=1 LLVM_IAS=1 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- HOSTCC=clang HOSTCXX=clang++
 llvm-strip --strip-debug "$W/driver/88x2bu.ko"
-modinfo "$W/driver/88x2bu.ko" 2>/dev/null | grep vermagic || strings "$W/driver/88x2bu.ko" | grep vermagic=
+llvm-objcopy -O binary --only-section=.modinfo "$W/driver/88x2bu.ko" /dev/stdout | tr '\0' '\n' | grep vermagic=
