@@ -34,3 +34,14 @@ above is the reliable method.
 
 Reboots reset the path knob and /data/local/tmp, so repeat steps 1-2 after a reboot
 (or use a KernelSU service.d script to re-apply them on boot).
+
+## Magisk module (persistent, recommended)
+
+`mt7610u-firmware-magisk.zip` is a Magisk module. Install it in Magisk →
+Modules → "Install from storage", then reboot. On every boot it:
+- ships `mediatek/mt7610u.bin` and points `/sys/module/firmware_class/parameters/path`
+  at itself, so the kernel's `request_firmware("mediatek/mt7610u.bin")` resolves;
+- also overlays `/vendor/firmware/mediatek/mt7610u.bin` as a fallback.
+
+After reboot, replug the adapter (or "Re-scan" in Stryker). No kernel module is
+compiled — the `mt76x0u` driver is already loaded; only firmware was missing.
